@@ -16,7 +16,7 @@ This helper function:
 
 ## Example
 
-```
+```python
 import pg_copy
 
 objs = [
