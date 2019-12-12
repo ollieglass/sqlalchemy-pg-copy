@@ -29,7 +29,7 @@ objs = [
 pg_copy.insert_with_copy(engine, objs, target_table)
 ```
 
-See example.py
+See [example.py](example.py)
 
 ## References
 
