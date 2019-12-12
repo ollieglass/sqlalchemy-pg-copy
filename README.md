@@ -33,8 +33,12 @@ See [example.py](example.py)
 
 ## References
 
-"Use COPY to load all the rows in one command, instead of using a series of INSERT commands. The COPY command is optimized for loading large numbers of rows; it is less flexible than INSERT, but incurs significantly less overhead for large data loads. Since COPY is a single command, there is no need to disable autocommit if you use this method to populate a table." Postgres docs ([Populating a Database - Chapter 14. Performance Tips](https://www.postgresql.org/docs/current/populate.html#POPULATE-COPY-FROM))
+> Use COPY to load all the rows in one command, instead of using a series of INSERT commands. The COPY command is optimized for loading large numbers of rows; it is less flexible than INSERT, but incurs significantly less overhead for large data loads. Since COPY is a single command, there is no need to disable autocommit if you use this method to populate a table.
+
+Postgres docs ([Populating a Database - Chapter 14. Performance Tips](https://www.postgresql.org/docs/current/populate.html#POPULATE-COPY-FROM))
 
 Stack Overflow - [How does COPY work and why is it so much faster than INSERT?](https://stackoverflow.com/questions/46715354/how-does-copy-work-and-why-is-it-so-much-faster-than-insert)
 
 SQLAlchemy docs, [Bulk Operations](https://docs.sqlalchemy.org/en/13/orm/persistence_techniques.html#bulk-operations)
+
+Example code and benchmarks for all methods of inserting data into Postgres. COPY is ~2-200x faster than any other method [Fastest Way to Load Data Into PostgreSQL Using Python](https://hakibenita.com/fast-load-data-python-postgresql)
