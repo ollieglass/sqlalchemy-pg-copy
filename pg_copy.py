@@ -55,10 +55,10 @@ def lines_to_stringio(lines):
 # ------------------------------------------------------------------------------
 # Insert
 
-def insert_with_copy(engine, objs, target_table, target_schema=None):
+def insert_with_copy(engine, objs, target_table, target_schema=None, ignore_duplicates=True):
     """Fast insert to a Postgres SQL table using COPY
 
-    Handles duplicates by
+    Ignores duplicates by
     - inserting to a temp table
     - INSERT INTO from temp to target with ON CONFLICT DO NOTHING
     - dropping temp table
@@ -68,9 +68,8 @@ def insert_with_copy(engine, objs, target_table, target_schema=None):
         objs: list of dictionaries. Keys must be identical
         target_table: name of table to be uploaded to
         target_schema: optional
+        ignore_duplicates: optional
     """
-
-    staging_table = f'staging_{target_table}'
 
     if target_schema:
         target_table = f'{target_schema}.{target_table}'
@@ -80,30 +79,38 @@ def insert_with_copy(engine, objs, target_table, target_schema=None):
     pg_csv_lines = list_of_dicts_to_pg_csv_lines(objs)
     f = lines_to_stringio(pg_csv_lines)
 
-    # copy to staging table and de-dupe on insert, else COPY will crash on duplicates
     conn = engine.raw_connection()
     with conn.cursor() as cursor:
 
-        cursor.execute(f'''
-            CREATE TEMP TABLE {staging_table}
-            ON COMMIT DROP
-            AS
-                SELECT *
-                FROM {target_table}
-                WITH NO DATA
-        ''')
+        if ignore_duplicates:
+            staging_table = f'staging_{target_table}'
 
-        cursor.copy_expert(f"""
-            COPY {staging_table} ({column_names})
-            FROM STDIN WITH CSV NULL '\\N'
-        """, f)
+            cursor.execute(f'''
+                CREATE TEMP TABLE {staging_table}
+                ON COMMIT DROP
+                AS
+                    SELECT *
+                    FROM {target_table}
+                    WITH NO DATA
+            ''')
 
-        cursor.execute(f'''
-            INSERT INTO {target_table} ({column_names})
-            SELECT {column_names}
-            FROM {staging_table}
-            ON CONFLICT DO NOTHING
-        ''')
+            cursor.copy_expert(f"""
+                COPY {staging_table} ({column_names})
+                FROM STDIN WITH CSV NULL '\\N'
+            """, f)
 
-        conn.commit()
-        conn.close()
+            cursor.execute(f'''
+                INSERT INTO {target_table} ({column_names})
+                SELECT {column_names}
+                FROM {staging_table}
+                ON CONFLICT DO NOTHING
+            ''')
+
+        else:
+            cursor.copy_expert(f"""
+                COPY {target_table} ({column_names})
+                FROM STDIN WITH CSV NULL '\\N'
+            """, f)
+
+    conn.commit()
+    conn.close()

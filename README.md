@@ -29,6 +29,10 @@ objs = [
 pg_copy.insert_with_copy(engine, objs, target_table)
 ```
 
+By default, values already present in the table are ignored. This can be changed by setting the `ignore_duplicates` argument to `False`.
+
+`insert_with_copy` can take an optional `target_schema` argument.
+
 See [example.py](example.py)
 
 ## References
