@@ -36,7 +36,7 @@ def list_of_dicts_to_pg_csv_lines(objs):
     columns = objs[0].keys()
 
     for o in objs:
-        values = [ value_to_pg_csv_value(obj[c]) for c in columns ]
+        values = [ value_to_pg_csv_value(o[c]) for c in columns ]
         line = ','.join(values) + '\n'
         yield line
 
